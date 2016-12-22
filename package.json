@@ -4,14 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node index.js"
+    "start": "node app/index.js"
   },
   "author": "Chien-Fu Chen <chienfuchen32@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
-    "socket-io": "0.0.0"
+    "mongoose": "^4.7.4",
+    "socket.io": "^1.7.2"
   }
 }
