@@ -20,4 +20,10 @@ exports.info_collector = function(req, res) {
     }
     response.message = ble.ble_list;
     res.json(response);
+    
+}
+exports.test = function(req, res) {
+    var response = { status: "OK", message:"" };
+    var IsWellFormat = true;
+    res.json(response);
 }
