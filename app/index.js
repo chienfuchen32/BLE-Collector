@@ -55,7 +55,7 @@ app.use(function(err, req, res, next) {
   });
 });
 
-socket io
+//socket io
 io.on('connection', function(socket){
   console.log('a user connected');
   socket.broadcast.emit('hi');

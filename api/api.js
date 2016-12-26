@@ -1,24 +1,29 @@
 //response -> status would be "OK" or "NG"
-
-exports.info_collector = function(req, res) {
+var ble = require('../configs/ble.js');
+exports.info_collector = function(req, res) {//handle ble info staion sniffed
     var response = { status: "OK", message:"" };
     var IsWellFormat = true;
-    //get http parameter to update ble_list
-    var ble = require('../configs/ble.js');
+    //get http parameter to update ble
     let IbleExisted = false;
-    for(var i = 0; i < ble.ble_list.length; i++){
-        if(ble.ble_list[i].bd_addr == req.body.bd_addr){
-            ble.ble_list[i].rssi = req.body.rssi;
+    for(var i = 0; i < ble.ble.length; i++){
+        if((ble.ble[i].s_id == req.body.s_id) && (ble.ble[i].bd_addr == req.body.bd_addr)){
+            ble.ble[i].rssi = req.body.rssi;
+            ble.ble[i].datetime = req.body.datetime;
             IbleExisted = true;
         }
     }
     if(!IbleExisted){
-        ble.ble_list[ble.ble_list.length] = {
-            bd_addr: req.body.bd_addr,
-            rssi: req.body.rssi,
+        ble.ble[ble.ble.length] = {
+            s_id: req.body.s_id,
+            device_name: req.body.device_name, 
+            addr_type: req.body.addr_type, 
+            bd_addr: req.body.bd_addr, 
+            type: req.body.type, 
+            company: req.body.company, 
+            rssi: req.body.rssi,  
+            datetime: req.body.datetime
         }
     }
-    response.message = ble.ble_list;
     res.json(response);
     
 }
