@@ -1,4 +1,4 @@
-//var mongoose = require('mongoose');
+var mongoose = require('mongoose');
 var phoneschema = mongoose.Schema(
     { phone_type: String , country_code: String, number: Number }, { _id: false, versionKey: false});
 var userModel = mongoose.model('user', mongoose.Schema({

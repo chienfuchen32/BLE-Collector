@@ -1,7 +1,9 @@
-var ble_stations = [
-    // ble_station1,
-    // ble_station2,
-    // ...
-]
-
-//ble_station = { id: "", name: "", x: 0, y: 0, }
+var mongoose = require('mongoose');
+var ble_stationModel = mongoose.model('ble_station', mongoose.Schema({
+    id: String,//needed?
+    bd_addr: String,
+    name: String,
+    x: Number,
+    y: Number,
+},{ versionKey: false }));
+module.exports = ble_stationModel;

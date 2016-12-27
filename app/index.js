@@ -1,7 +1,8 @@
+var express = require('express');
 var app = require('express')();
 var bodyParser = require('body-parser');
 var http = require('http').Server(app);
-// var io = require('socket.io')(http);
+var io = require('socket.io')(http);
 var router_ble = require('../routers/ble.js');
 var ble = require('../configs/ble.js');
 var core = require('../app/core.js');
@@ -19,17 +20,22 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.use('/static', express.static('static'));
+
 app.set('env', 'dev');
 
 app.get('/', function(req, res){
   //res.send('<h1>Hello world</h1>');
   res.sendFile(__dirname + '/index.html');
 });
+app.get('/station', function(req, res){
+  res.sendFile(__dirname + '/station.html');
+});
 app.use('/ble', router_ble);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  res.status(404).send('404 Not Found')
+  res.status(404).send('404 Not Found');
 });
 // error handlers
 
@@ -55,17 +61,17 @@ app.use(function(err, req, res, next) {
   });
 });
 
-//socket io
+// socket io
 io.on('connection', function(socket){
-  console.log('a user connected');
+  // console.log('a user connected');
   socket.broadcast.emit('hi');
   socket.on('chat message', function(msg){
-    console.log('message: ' + msg);
+    // console.log('message: ' + msg);
     io.emit('chat message', msg);
     io.emit('chat message', { for: 'everyone' });
   });
   socket.on('disconnect', function(){
-    console.log('user disconnected');
+    // console.log('user disconnected');
   });
 });
 

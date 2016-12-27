@@ -9,5 +9,5 @@ var ble_stations = [
     // ble_station2,
     // ...
 ]
-//ble_station = { id: "", name: "", x: 0, y: 0, }
+//ble_station = { id: "", bd_addr: "", name: "", x: 0, y: 0, }
 module.exports = { ble, ble_stations }//for realtime calculation
