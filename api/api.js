@@ -12,7 +12,8 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed
     //get http parameter to update ble
     let IbleExisted = false;
     for(var i = 0; i < ble.ble.length; i++){
-        if((ble.ble[i].s_id == req.body.s_id) && (ble.ble[i].bd_addr == req.body.bd_addr)){
+        if(ble.ble[i].bd_addr == req.body.bd_addr){
+            ble.ble[i].tx_power = req.body.tx_power;
             ble.ble[i].rssi = req.body.rssi;
             ble.ble[i].datetime = req.body.datetime;
             IbleExisted = true;
@@ -20,12 +21,12 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed
     }
     if(!IbleExisted){
         ble.ble[ble.ble.length] = {
-            s_id: req.body.s_id,
             device_name: req.body.device_name, 
             addr_type: req.body.addr_type, 
             bd_addr: req.body.bd_addr, 
             type: req.body.type, 
             company: req.body.company, 
+            tx_power: req.body.tx_power,
             rssi: req.body.rssi,  
             datetime: req.body.datetime
         }
@@ -43,7 +44,6 @@ exports.test = function(req, res) {
 exports.addStation = function(req, res) {
   var response = { status: "OK", message:"" };//if proccess status would be "OK" or "NG"
   var IsWellFormat = true;
-  const id = req.body.id;
   const bd_addr = req.body.bd_addr;
   const name = req.body.name;
   const x = req.body.x;
@@ -68,7 +68,7 @@ exports.addStation = function(req, res) {
     //   // console.log('connected');
     // });
     var ble_stationModel = require("../model/ble_station.js");
-    // check if id existed
+    // check if bd_addr existed
     var Is_bd_addr_Existed = false;
     var query = ble_stationModel.findOne({ 'bd_addr': bd_addr });
     query.select('name');
@@ -83,7 +83,6 @@ exports.addStation = function(req, res) {
       else{
         //insert data to mongodb
         var ble_station = new ble_stationModel({
-            id: id,
             bd_addr: bd_addr,
             name: name,
             x: x,
@@ -105,7 +104,6 @@ exports.addStation = function(req, res) {
 exports.editStation = function(req, res) {
   var response = { status: "OK", message:"" };//if proccess status would be "OK" or "NG"
   var IsWellFormat = true;
-  const id = req.body.id;
   const bd_addr = req.body.bd_addr;
   const name = req.body.name;
   const x = req.body.x;
@@ -130,7 +128,7 @@ exports.editStation = function(req, res) {
     //   // console.log('connected');
     // });
     // var ble_stationModel = require("../model/ble_station.js");
-    // // check if id existed
+    // // check if bd_addr existed
     // var Is_bd_addr_Existed = false;
     // var query = ble_stationModel.findOne({ 'bd_addr': bd_addr });
     // query.select('name');
@@ -145,7 +143,6 @@ exports.editStation = function(req, res) {
     //   else{
     //     //insert data to mongodb
     //     var ble_station = new ble_stationModel({
-    //         id: id,
     //         bd_addr: bd_addr,
     //         name: name,
     //         x: x,
