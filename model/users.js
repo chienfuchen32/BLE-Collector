@@ -2,8 +2,7 @@ var mongoose = require('mongoose');
 var phoneschema = mongoose.Schema(
     { phone_type: String , country_code: String, number: Number }, { _id: false, versionKey: false});
 var userModel = mongoose.model('user', mongoose.Schema({
-    name: { first: String, last: String },
-    nickname: String,
+    name: String,
     gender: Number,//ISO 5218
     id: String,//人工unique key
     password: String,
