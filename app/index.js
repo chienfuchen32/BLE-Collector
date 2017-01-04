@@ -4,8 +4,16 @@ var bodyParser = require('body-parser');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var router_ble = require('../routers/ble.js');
+var router_ble_staion = require('../routers/ble_station.js');
 var ble = require('../configs/ble.js');
 var core = require('../app/core.js');
+var config_mongodb = require('../configs/mongodb.js');
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;//https://github.com/Automattic/mongoose/issues/4291
+mongoose.connect(config_mongodb.mongodb.database);
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));//因為遇到http://stackoverflow.com/questions/9768444/possible-eventemitter-memory-leak-detected 所以把這個關閉
+db.on('open', function() { console.log('connected');});
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(cookieParser());
@@ -13,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 //hide express header
 app.disable('x-powered-by');
 
-//allow CORS --> security of socket io can use things like this https://auth0.com/blog/auth-with-socket-io/
+//allow CORS? --> security of socket io can use things like this https://auth0.com/blog/auth-with-socket-io/
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -32,6 +40,7 @@ app.get('/station', function(req, res){
   res.sendFile(__dirname + '/station.html');
 });
 app.use('/ble', router_ble);
+app.use('/station', router_ble_staion);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

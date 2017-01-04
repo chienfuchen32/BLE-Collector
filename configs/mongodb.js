@@ -1,3 +1,3 @@
-export default ({
+exports.mongodb = {
   "database": "mongodb://localhost/bledb"
-});
+};
