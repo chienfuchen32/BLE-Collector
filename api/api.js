@@ -11,7 +11,7 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed
     let ble_list = req.body.ble_list;
     for(let i  = 0; i < ble_list.length; i++){
       for(let j = 0; j < ble.ble.length; j++){
-          if(ble.ble[j].bd_addr == ble_list[i].bd_addr){
+          if((ble.ble[j].s_bd_addr == ble_list[i].s_bd_addr) && (ble.ble[j].bd_addr == ble_list[i].bd_addr)){
               ble.ble[j].tx_power = ble_list[i].tx_power;
               ble.ble[j].rssi = ble_list[i].rssi;
               ble.ble[j].datetime = ble_list[i].datetime;
@@ -20,6 +20,7 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed
       }
       if(!IbleExisted){
           ble.ble[ble.ble.length] = {
+              s_bd_addr: req.body.s_bd_addr, 
               addr_type: ble_list[i].addr_type, 
               bd_addr: ble_list[i].bd_addr, 
               type: ble_list[i].type, 

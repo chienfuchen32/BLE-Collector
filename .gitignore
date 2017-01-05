@@ -5,4 +5,4 @@ logs
 *.log
 npm-debug.log*
 .vscode/
-config/mongodb.js
+configs/mongodb.js

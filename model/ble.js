@@ -1,1 +1,1 @@
-//define ble objec { device_name: "", addr_type: "", bd_addr: "", name: "", type: "", company: "", tx_power: "", rssi: "",  datetime_nearby: "", u_id: ""}
+//define ble objec { device_name: "", addr_type: "", bd_addr: "", name: "", type: "", company: "", tx_power: "", rssi: "",  datetime_nearby: "", rssi_0m}
