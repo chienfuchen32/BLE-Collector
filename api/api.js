@@ -1,25 +1,26 @@
 var validator = require('validator');
 //response -> status would be "OK" or "NG"
-var ble = require('../configs/ble.js');
-//ble
-exports.info_collector = function(req, res) {//handle ble info staion sniffed
+var globals = require('../globals/globals.js');
+exports.info_collector = function(req, res) {//handle ble info staion sniffed then update globals/globals.bles
+  //****please lock globals.bles https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
   try{
     var response = { status: "OK", message:"" };
     var IsWellFormat = true;
     //get http parameter to update ble
     let IbleExisted = false;
     let ble_list = req.body.ble_list;
+    //****delete globals.bles where (globals.bles[i].datetime).substract(Date.now()) > 1 minute
     for(let i  = 0; i < ble_list.length; i++){
-      for(let j = 0; j < ble.ble.length; j++){
-          if((ble.ble[j].s_bd_addr == ble_list[i].s_bd_addr) && (ble.ble[j].bd_addr == ble_list[i].bd_addr)){
-              ble.ble[j].tx_power = ble_list[i].tx_power;
-              ble.ble[j].rssi = ble_list[i].rssi;
-              ble.ble[j].datetime = ble_list[i].datetime;
+      for(let j = 0; j < globals.bles.length; j++){
+          if((globals.bles[j].s_bd_addr == ble_list[i].s_bd_addr) && (globals.bles[j].bd_addr == ble_list[i].bd_addr)){
+              globals.bles[j].tx_power = ble_list[i].tx_power;
+              globals.bles[j].rssi = ble_list[i].rssi;
+              globals.bles[j].datetime = ble_list[i].datetime;
               IbleExisted = true;
           }
       }
       if(!IbleExisted){
-          ble.ble[ble.ble.length] = {
+          globals.bles[globals.bles.length] = {
               s_bd_addr: req.body.s_bd_addr, 
               addr_type: ble_list[i].addr_type, 
               bd_addr: ble_list[i].bd_addr, 
@@ -32,7 +33,7 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed
           }
       }
     }
-    console.log(ble.ble)
+    console.log(globals.bles)
     res.json(response);
   }
   catch(err){
@@ -41,12 +42,12 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed
 //ble station
 exports.findStation = function(req, res){
   var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
-  var ble_stationModel = require("../model/ble_station.js");
-  ble_stationModel.find({}, function (err, ble_station) {
+  var ble_stationModel = require("../model/ble_stations.js");
+  ble_stationModel.find({}, function (err, ble_stations) {
     if (err){
       response = { status : "NG", message : err };
     }
-    response.message = ble_station;
+    response.message = ble_stations;
     res.json(response);
   })}
 exports.addStation = function(req, res) {
@@ -69,7 +70,7 @@ exports.addStation = function(req, res) {
     response = { status : "NG", message : err.message };
   }
   if(IsWellFormat) {
-    var ble_stationModel = require("../model/ble_station.js");
+    var ble_stationModel = require("../model/ble_stations.js");
     // check if bd_addr existed
     var Is_bd_addr_Existed = false;
     var query = ble_stationModel.findOne({ 'bd_addr': bd_addr });
@@ -122,7 +123,7 @@ exports.editStation = function(req, res) {
     response = { status : "NG", message : err.message };
   }
   if(IsWellFormat) {
-    var ble_stationModel = require("../model/ble_station.js");
+    var ble_stationModel = require("../model/ble_stations.js");
     // check if bd_addr existed
     var Is_bd_addr_Existed = false;
     var query = ble_stationModel.findOne({ 'bd_addr': bd_addr });
@@ -162,7 +163,7 @@ exports.delStation = function(req, res) {
     response = { status : "NG", message : err.message };
   }
   if(IsWellFormat) {
-    var ble_stationModel = require("../model/ble_station.js");
+    var ble_stationModel = require("../model/ble_stations.js");
     ble_stationModel.remove({ bd_addr: bd_addr },
     function(err){
       if(err){
@@ -174,3 +175,8 @@ exports.delStation = function(req, res) {
   else {
       res.json(response);
   }}
+//users
+exports.addUser = function(req, res){
+}
+
+//areas

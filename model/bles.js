@@ -1,0 +1,1 @@
+//define ble objec { addr_type: "", bd_addr: "", name: "", type: "", company: "", tx_power: "", rssi: "",  datetime: "", rssi_0m}

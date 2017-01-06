@@ -5,15 +5,19 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var router_ble = require('../routers/ble.js');
 var router_ble_staion = require('../routers/ble_station.js');
-var ble = require('../configs/ble.js');
-var core = require('../app/core.js');
+var Core = require('../app/core.js');
+var hardcore = new Core();
 var config_mongodb = require('../configs/mongodb.js');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;//https://github.com/Automattic/mongoose/issues/4291
 mongoose.connect(config_mongodb.mongodb.database);
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));//因為遇到http://stackoverflow.com/questions/9768444/possible-eventemitter-memory-leak-detected 所以把這個關閉
-db.on('open', function() { console.log('connected');});
+db.on('open', function() {
+  // console.log('connected');
+  hardcore.bleStationsUpdate();
+  var estimateLocationInterval = setInterval( core.estimateLocation, 10000);//local variable or global?
+});
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(cookieParser());
@@ -28,7 +32,7 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.use('/static', express.static('static'));
+app.use('/assets', express.static('assets'));
 
 app.set('env', 'dev');
 
