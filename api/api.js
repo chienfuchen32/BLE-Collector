@@ -2,37 +2,57 @@ var validator = require('validator');
 //response -> status would be "OK" or "NG"
 var globals = require('../globals/globals.js');
 exports.info_collector = function(req, res) {//handle ble info staion sniffed then update globals/globals.bles
-  //****please lock globals.bles https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+  //****please lock globals.bles_native https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
   try{
-    var response = { status: "OK", message:"" };
+    var response = { status: "OK", message: "" };
     var IsWellFormat = true;
     //get http parameter to update ble
-    let IbleExisted = false;
     let ble_list = req.body.ble_list;
-    //****delete globals.bles where (globals.bles[i].datetime).substract(Date.now()) > 1 minute
+    //****try make ble.exe send rssi int16 message
+    //****delete globals.bles_native where (globals.bles_native.bles[i].datetime).substract(Date.now()) > 1 minute
     for(let i  = 0; i < ble_list.length; i++){
-      for(let j = 0; j < globals.bles.length; j++){
-          if((globals.bles[j].s_bd_addr == ble_list[i].s_bd_addr) && (globals.bles[j].bd_addr == ble_list[i].bd_addr)){
-              globals.bles[j].tx_power = ble_list[i].tx_power;
-              globals.bles[j].rssi = ble_list[i].rssi;
-              globals.bles[j].datetime = ble_list[i].datetime;
-              IbleExisted = true;
-          }
+      let Is_ble_Existed = false;
+      let s_bd_addr = req.body.s_bd_addr;
+      let ble = {
+        addr_type: ble_list[i].addr_type,
+        bd_addr: ble_list[i].bd_addr,
+        type: ble_list[i].type,
+        company: ble_list[i].company,
+        name: ble_list[i].name,
+        tx_power: ble_list[i].tx_power,
+        rssi: ble_list[i].rssi,
+        datetime: ble_list[i].datetime,
       }
-      if(!IbleExisted){
-          globals.bles[globals.bles.length] = {
-              s_bd_addr: req.body.s_bd_addr, 
-              addr_type: ble_list[i].addr_type, 
-              bd_addr: ble_list[i].bd_addr, 
-              type: ble_list[i].type, 
-              company: ble_list[i].company, 
-              name: ble_list[i].name, 
-              tx_power: ble_list[i].tx_power, 
-              rssi: ble_list[i].rssi, 
-              datetime: ble_list[i].datetime
+      for(let j = 0; j < globals.bles_native.length; j++){
+        if(globals.bles_native[j].s_bd_addr == ble_list[i].s_bd_addr){
+          for(let k = 0; k < global.bles_native[j].bles.length; k++){
+            if(globals.bles_native[j].bles[k].bd_addr == ble_list[i].bd_addr){
+              globals.bles_native[j].bles[k].tx_power = ble_list[i].tx_power;
+              globals.bles_native[j].bles[k].rssi = ble_list[i].rssi;
+              globals.bles_native[j].bles[k].datetime = ble_list[i].datetime;
+              Is_ble_Existed = true;
+            }
           }
+        }
+      }
+      if(!Is_ble_Existed){
+        let Is_ble_station_Existed = false;
+        for(let j = 0; j < globals.bles.length; j++){
+          if(globals.bles_native[j].s_bd_addr == s_bd_addr){
+            globals.bles_native[j].bles[globals.bles_native[j].bles.length] = ble;
+            Is_ble_station_Existed = true;
+          }
+        }
+        if(!Is_ble_station_Existed){
+          globals.bles_native[j].bles[globals.bles[j].length] = {
+            s_bd_addr: s_bd_addr,
+            bles: [ ble ]
+          }
+        }
       }
     }
+    //****please lock globals.bles
+    //make globals.bles = {bd_addr:"", addr_type:"", ... ble_stations:[{s_bd_addr:"", rssi: rssi, datetime: ""}]}
     console.log(globals.bles)
     res.json(response);
   }
@@ -73,7 +93,7 @@ exports.addStation = function(req, res) {
     var ble_stationModel = require("../model/ble_stations.js");
     // check if bd_addr existed
     var Is_bd_addr_Existed = false;
-    var query = ble_stationModel.findOne({ 'bd_addr': bd_addr });
+    var query = ble_stationModel.findOne({ bd_addr: bd_addr });
     query.select('name');
     query.exec(function (err, ble_station) {
       if (err) return handleError(err);
@@ -104,7 +124,7 @@ exports.addStation = function(req, res) {
       res.json(response);
   }}
 exports.editStation = function(req, res) {
-  var response = { status: "OK", message:"" };//if proccess status would be "OK" or "NG"
+  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   const name = req.body.name;
@@ -126,7 +146,7 @@ exports.editStation = function(req, res) {
     var ble_stationModel = require("../model/ble_stations.js");
     // check if bd_addr existed
     var Is_bd_addr_Existed = false;
-    var query = ble_stationModel.findOne({ 'bd_addr': bd_addr });
+    var query = ble_stationModel.findOne({ bd_addr: bd_addr });
     query.select('name');
     query.exec(function (err, ble_station) {
       if (err) return handleError(err);
@@ -139,7 +159,7 @@ exports.editStation = function(req, res) {
       else{
         ble_stationModel.update(
           { bd_addr: bd_addr}, 
-          { $set: { bd_addr: bd_addr, name: name, x: x, y: y }},
+          { $set: { name: name, x: x, y: y }},
           function(err){
             if(err){
               response = { status : "NG", message : err };
@@ -153,7 +173,7 @@ exports.editStation = function(req, res) {
       res.json(response);
   }}
 exports.delStation = function(req, res) {
-  var response = { status: "OK", message:"" };//if proccess status would be "OK" or "NG"
+  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   try{
@@ -177,6 +197,234 @@ exports.delStation = function(req, res) {
   }}
 //users
 exports.addUser = function(req, res){
-}
-
+  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var IsWellFormat = true;
+  const name = req.body.name;
+  const gender = req.body.gender;
+  const id = req.body.id;
+  const password = req.body.password;
+  const email = req.body.email;
+  const phone_type = req.body.phone_type;
+  const country_code = req.body.country_code;
+  const number = req.body.number;
+  const photo_path = req.body.photo_path;
+  const ble_devices = req.body.ble_devices;
+  try{
+    const pass_regex = /^[a-zA-Z0-9]+$/;
+    if(((typeof id != "undefined") && (!pass_regex.test(id))) || (id == "")){
+      throw "id format wrong";
+    }
+    if(((typeof password != "undefined") && (!pass_regex.test(password))) || (password == "")){
+      throw "password format wrong";
+    }
+    if((typeof gender != "undefined") && ((!validator.isInt(gender)) || ((gender != 0) && (gender != 1) && (gender != 2) && (gender != 9)))){
+      throw "gender format wrong";
+    }
+    if((typeof email != "undefined") && (!validator.isEmail(email))){
+      throw "email format wrong";
+    }
+    if((typeof country_code != "undefined") && (!validator.isInt(country_code))){
+      throw "country code format wrong";
+    }
+    if((typeof number != "undefined") && (!validator.isInt(number))){
+      throw "number format wrong";
+    }
+  }
+  catch(err){
+    IsWellFormat = false;
+    response = { status : "NG", message : err.message };
+  }
+  if(IsWellFormat) {
+    var usermodel = require("../model/user.js");
+    // check if id existed 
+    var IsIdExisted = false;
+    var query = usermodel.findOne({ id: id });
+    query.select('name');
+    query.exec(function (err, user) {
+      if (err) return handleError(err);
+      if(user != null)
+        IsIdExisted = true;
+      if(IsIdExisted){
+        response = { status : "NG", message : "id is already existed" };//人工unique key
+        res.json(response);
+      }
+      else{
+        var user = new usermodel({
+          name: name, 
+          gender: gender, 
+          id: id, 
+          password: password, 
+          email: email, 
+          contact: { phone: [{ phone_type: phone_type, country_code: country_code, number: number }]}, 
+          photo_path: photo_path, 
+          ble_devices: [ ble_devices ], 
+          create_datetime: Date.now(), 
+          update_datetime: Date.now()
+        });
+        user.save(function(err){
+          if(err){
+            response = { status : "NG", message : err };
+          }
+          res.json(response);
+        });
+      }
+    })
+  }
+  else {
+      res.json(response);
+  }}
+exports.editUser = function(req, res) {
+  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var IsWellFormat = true;
+  const name = req.body.name;
+  const gender = req.body.gender;
+  const id = req.body.id;
+  const password = req.body.password;
+  const email = req.body.email;
+  const phone_type = req.body.phone_type;
+  const country_code = req.body.country_code;
+  const number = req.body.number;
+  const photo_path = req.body.photo_path;
+  const ble_devices = req.body.ble_devices;
+  try{
+    const pass_regex = /^[a-zA-Z0-9]+$/;
+    if(((typeof id != "undefined") && (!pass_regex.test(id))) || (id == "")){
+      throw "id format wrong";
+    }
+    if(((typeof password != "undefined") && (!pass_regex.test(password))) || (password == "")){
+      throw "password format wrong";
+    }
+    if((typeof gender != "undefined") && ((!validator.isInt(gender)) || ((gender != 0) && (gender != 1) && (gender != 2) && (gender != 9)))){
+      throw "gender format wrong";
+    }
+    if((typeof email != "undefined") && (!validator.isEmail(email))){
+      throw "email format wrong";
+    }
+    if((typeof country_code != "undefined") && (!validator.isInt(country_code))){
+      throw "country code format wrong";
+    }
+    if((typeof number != "undefined") && (!validator.isInt(number))){
+      throw "number format wrong";
+    }
+  }
+  catch(err){
+    IsWellFormat = false;
+    response = { status : "NG", message : err.message };
+  }
+  if(IsWellFormat) {
+    var userModel = require("../model/user.js");
+    // check if bd_addr existed
+    var Is_id_Existed = false;
+    var query = userModel.findOne({ id : id });
+    query.select('name');
+    query.exec(function (err, user) {
+      if (err) return handleError(err);
+      if(user != null)
+        Is_id_Existed = true;
+      if(!Is_id_Existed){
+        response = { status : "NG", message : "id is not existed" };
+        res.json(response);
+      }
+      else{
+        userModel.update(
+          { id: id}, 
+          { $set: { name: name, 
+                    gender: gender, 
+                    password: password, 
+                    email: email, 
+                    contact: { phone: [{ phone_type: phone_type, country_code: country_code, number: number }]}, 
+                    photo_path: photo_path, 
+                    ble_devices: [ ble_devices ], 
+                    create_datetime: Date.now(), 
+                    update_datetime: Date.now()
+          }},
+          function(err){
+            if(err){
+              response = { status : "NG", message : err };
+            }
+            res.json(response);
+          });
+      }
+    })
+  }
+  else {
+      res.json(response);
+  }}
+exports.delUser = function(req, res) {
+  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var IsWellFormat = true;
+  const id = req.body.id;
+  try{
+    const pass_regex = /^[a-zA-Z0-9]+$/;
+    if(((typeof id != "undefined") && (!pass_regex.test(id))) || (id == "")){
+      throw "id format wrong";
+    }
+  }
+  catch(err){
+    IsWellFormat = false;
+    response = { status : "NG", message : err.message };
+  }
+  if(IsWellFormat) {
+    var userModel = require("../model/user.js");
+    userModel.remove({ id: id },
+    function(err){
+      if(err){
+        response = { status : "NG", message : err };
+      }
+      res.json(response);
+    });
+  }
+  else {
+      res.json(response);
+  }}
 //areas
+exports.editArea = function(req, res){
+  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var IsWellFormat = true;
+  const width = req.body.width;
+  const height = req.body.height;
+  const meters_unit = req.body.meters_unit;
+  try{
+    if((typeof x != "undefined") && (!validator.isInt(width))){
+      throw "width format wrong";
+    }
+    if((typeof y != "undefined") && (!validator.isInt(height))){
+      throw "height format wrong";
+    }
+    if((typeof y != "undefined") && (!validator.isInt(meters_unit))){
+      throw "meters_unit format wrong";
+    }
+  }
+  catch(err){
+    IsWellFormat = false;
+    response = { status : "NG", message : err.message };
+  }
+  if(IsWellFormat) {
+    var areaModel = require("../model/areas.js");
+    // check if bd_addr existed
+    var Is_bd_addr_Existed = false;
+    mongoose.connection.db.dropCollection('areas', function(err, result) {//http://stackoverflow.com/questions/11453617/mongoose-js-remove-collection-or-db
+      if(err){
+        response = { status : "NG", message : err };
+        res.json(response);
+      }
+      else{
+        //insert data to mongodb
+        var area = new areaModel({
+            width: width,
+            height: height,
+            meters_unit: meters_unit
+        });
+        area.save(function(err){
+          if(err){
+            response = { status : "NG", message : err };
+          }
+          res.json(response);
+        });
+      }
+      
+    });
+  }
+  else {
+      res.json(response);
+  }}

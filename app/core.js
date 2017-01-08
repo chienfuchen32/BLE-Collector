@@ -8,50 +8,56 @@ class Core {
                     type3 {bd_addr:"",distance:[],locations:[]}
     */
     constructor() {
-        this.n_environment = 2; //signal propagation constant 
+        this.n_environment = 2; //signal propagation constant
+        this.meters_error_tolerance_estimate = 2;//in meters
     }
     estimateLocation(){
+        const d_t = this.meters_error_tolerance_estimate;
         let distances_bles2bleStations = [
-            /*distance of ble1 to bleStation1 = { bd_addr: "", s_bd_addr: "", distance: ""},
-            distance of ble1 to bleStation2 = { bd_addr: "", s_bd_addr: "", distance: ""},...*/];
+            /*distance of ble1 to bleStation1 = { bd_addr: "", ble_staions: [{s_bd_addr: "", distance: d}, {s_bd_addr: "", distance: d}]},
+            ...*/];//****if necessary(like complexity of algorithm), change data structure like 2 dimension object ble:"bd_addr1",station:[{ble_stations:""},{}],ble:"bd_addr2",station:[]
         if(globals.ble_stations.length!=0){//to prevent async data exchange from db exception event
             //or try to lock globals.ble_stations https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
             // foreach globals.bles in ble_station_id
             // try to lock globals.bles https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
-            for(var i = 0; i < globals.bles.length; i++){
-                let isobject_existed = false;
-                let distance = "";
-                if((globals.bles[i].tx_power!="")&&(globals.bles[i].rssi!="")){
-                    distance = rssi2distance(globals.bles[i].tx_power, globals.bles[i].rssi)//**** only if tx_power existed;
-                }
-                for(var j = 0; j < distances_bles2bleStations.length; j++){
-                    if((globals.bles[i].s_bd_addr == distances_bles2bleStations[j].s_bd_addr) && (globals.bles[i].bd_addr == distances_bles2bleStations[j].bd_addr)){
-                        distances_bles2bleStations[j].distance = distance;
-                        isobject_existed = true;
+            for(let i = 0; i < globals.bles.length; i++){
+                distances_bles2bleStations[i] = {
+                    bd_addr : globals.bles[i].bd_addr,
+                    ble_stations: []
+                };
+                for(let j = 0; j < globals.bles[i].ble_stations.length; j++){
+                    let isobject_existed = false;
+                    let distance = "";
+                    if(globals.bles[i].tx_power!=""){
+                        distance = rssi2distance(globals.bles[i].tx_power, globals.bles[i].ble_stations[j].rssi);//**** only if tx_power existed;
                     }
-                }
-                if(!isobject_existed){
-                    distances_bles2bleStations[distances_bles2bleStations.length] = {
-                        bd_addr: globals.bles[i].bd_addr,
-                        s_bd_addr: globals.bles[i].s_bd_addr,
+                    distances_bles2bleStations[i].ble_stations[j] = {
+                        s_bd_addr: globals.bles[i].ble_stations[j].s_bd_addr,
                         distance: distance
                     }
                 }
             }
-            let locations_ble = [
+            let locations_bles = [
                 /*ble1_location = { bd_addr: "", x: "", y: "" },
                 ble2_location = { bd_addr: "", x: "", y: "" },
                 ...*/];
             //foreach space location to check x, y is satisfied all distance condiction
-
-            for(var x = 0; x < globals.area.width; x++){
-                for(var y = 0; y < globals.area.height; y++){
+            ///try to lock globals.area https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+            for(let x = 0; x < globals.area.width; x++){
+                for(let y = 0; y < globals.area.height; y++){
+                    let locations_ble = [];
+                    for(let i = 0; i < distances_bles2bleStations.length; i++){
+                        for(let j = 0; j < distances_bles2bleStations[i].ble_stations.length; j++){
+                            
+                        }
+                    }
+                    
                     if(true){
-                        locations_ble[k] = { bd_addr: "", distance:[], locations:[{x: x, y: y}]};
+                        locations_bles[k] = { bd_addr: "", distance:[], locations:[{ x: x, y: y}]};
                         //or
-                        locations_ble[k] = { bd_addr: "", distance:[], distance:[{s_bd_addr:"",distance:""}]};
+                        locations_bles[k] = { bd_addr: "", distance:[{ s_bd_addr: "", distance: 5}], locations:[]};
                         //or
-                        locations_ble[k] = { bd_addr: "", distance:[], locations:[]};
+                        locations_bles[k] = { bd_addr: "", distance:[], locations:[]};
                     }
                 }
             }
@@ -80,13 +86,17 @@ class Core {
     }
     //ble station update needed?
     rssi02distance(rssi0, rssi, d0){ //d0 distance in meters
-        // let n = this.n_environment;//(n ranges from 2 to 4)
+        // const n = this.n_environment;//(n ranges from 2 to 4)
         // let d = d0 * Math.pow(10, (rss0 - rssi)/(10 * n))
         //Derivation
-        //https://www.gitbook.com/book/hom-wang/indoorpositioning-ls/details
+
+        //Algorithm
+        //least square https://www.gitbook.com/book/hom-wang/indoorpositioning-ls/details
+        //http://oplab.im.ntu.edu.tw/csimweb/system/application/views/files/ICIM/20120242
+        //training https://nccur.lib.nccu.edu.tw/retrieve/82504/024101.pdf
     }
     rssi2distance(p, rssi){
-        let n = this.n_environment;//(n ranges from 2 to 4)
+        const n = this.n_environment;//(n ranges from 2 to 4)
         let distance = Math.pow(10, ((p - rssi)/(10 * n)));
         return distance;
         //real world sample http://www.arthurtoday.com/2014/10/howtouseibeaconpart1.html

@@ -4,5 +4,6 @@ var ble_stationModel = mongoose.model('ble_station', mongoose.Schema({
     name: String,
     x: Number,
     y: Number,
+    // register_ble: Boolean,//
 },{ versionKey: false }));
 module.exports = ble_stationModel;

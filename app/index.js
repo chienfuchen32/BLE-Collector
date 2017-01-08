@@ -5,6 +5,8 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var router_ble = require('../routers/ble.js');
 var router_ble_staion = require('../routers/ble_station.js');
+var router_area = require('../routers/area.js');
+var router_user = require('../routers/user.js');
 var Core = require('../app/core.js');
 var hardcore = new Core();
 var config_mongodb = require('../configs/mongodb.js');
@@ -16,7 +18,7 @@ db.on('error', console.error.bind(console, 'connection error:'));//因為遇到h
 db.on('open', function() {
   // console.log('connected');
   hardcore.bleStationsUpdate();
-  var estimateLocationInterval = setInterval( core.estimateLocation, 10000);//local variable or global?
+  // var estimateLocationInterval = setInterval( core.estimateLocation, 10000);//local variable or global?
 });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -45,6 +47,8 @@ app.get('/station', function(req, res){
 });
 app.use('/ble', router_ble);
 app.use('/station', router_ble_staion);
+app.use('/area', router_area);
+app.use('/user', router_user);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -76,12 +80,15 @@ app.use(function(err, req, res, next) {
 
 // socket io
 io.on('connection', function(socket){
-  // console.log('a user connected');
+  console.log('a user connected');
   socket.broadcast.emit('hi');
   socket.on('chat message', function(msg){
     // console.log('message: ' + msg);
     io.emit('chat message', msg);
     io.emit('chat message', { for: 'everyone' });
+    let test = setInterval(function(){
+      io.emit('chat message', 'yo');
+    }, 3000);
   });
   socket.on('disconnect', function(){
     // console.log('user disconnected');

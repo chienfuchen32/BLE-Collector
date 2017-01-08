@@ -1,15 +1,18 @@
-var bles = [
-//  ble_object1,
-//  ble_object2,
+var bles_native = [
+//  ble_native_object1 = { s_bd_addr: "", bles:[{ addr_type: "", bd_addr: "", type: "", company: "", name: "", tx_power: tx_power, rssi: rssi,  datetime: ""}]},
+//  ble_native_object2,
 //  ...
 ]
-//define bles objec { s_bd_addr: "", addr_type: "", bd_addr: "", type: "", company: "", name: "", tx_power: "", rssi: "",  datetime: ""}
+var bles = [
+// ble_object1 = { bd_addr: "", addr_type: "", bd_addr: "", type: "", company: "", name: "", tx_power: tx_power, ble_staions: [{ s_bd_addr: "", rssi: rssi, datetime: "" }, {s_bd_addr: "", rssi: rssi, datetime: ""}, ...] },
+// ble_object2,
+// ...
+]
 var ble_stations = [
-    // ble_station1,
+    // ble_station1 = { bd_addr: "", name: "", x: x, y: y },
     // ble_station2,
     // ...
 ]
-//ble_station = { bd_addr: "", name: "", x: 0, y: 0 }
 var area = {
     //width: w,
     //height: h,
