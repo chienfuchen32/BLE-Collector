@@ -12,8 +12,8 @@
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
     </style>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src='https://cdn.socket.io/socket.io-1.2.0.js'></script>
+    <script src='http://code.jquery.com/jquery-1.11.1.js'></script>
     <script>
       //socket io
       var socket = io();
@@ -29,26 +29,26 @@
 
       //canvas
       function draw() {
-        var canvas = document.getElementById("canvas");
+        var canvas = document.getElementById('canvas');
         if (canvas.getContext) {
           var img = new Image();
           img.src = 'assets/raspberry-white.png';
           img.onload = function(){
-          var ctx = canvas.getContext("2d");
-            // ctx.fillStyle = "rgb(200,0,0)";
+          var ctx = canvas.getContext('2d');
+            // ctx.fillStyle = 'rgb(200,0,0)';
             // ctx.fillRect (10, 10, 55, 50);
 
-            // ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+            // ctx.fillStyle = 'rgba(0, 0, 200, 0.5)';
             // ctx.fillRect (30, 30, 55, 50);
 
-            ctx.strokeStyle = "rgba(255,0,0,0.3)";
-            ctx.fillStyle = "rgba(255,0,0,0.3)";
+            ctx.strokeStyle = 'rgba(255,0,0,0.3)';
+            ctx.fillStyle = 'rgba(255,0,0,0.3)';
             ctx.beginPath();
             ctx.arc(50,50,50,0,Math.PI*2,true);
             ctx.fill();
             ctx.stroke();
-            ctx.strokeStyle = "rgba(0,255,0,0.2)";
-            ctx.fillStyle = "rgba(0,255,0,0.2)";
+            ctx.strokeStyle = 'rgba(0,255,0,0.2)';
+            ctx.fillStyle = 'rgba(0,255,0,0.2)';
             ctx.beginPath();
             ctx.arc(50,50,30,0,Math.PI*2,true);
             ctx.fill();
@@ -59,14 +59,14 @@
       }
     </script>
   </head>
-  <body onload="draw();">
-    <div style="position: relative;top:0; width:800px; height: 600px; z-index: -1; background-color: darkgrey">
-      <canvas id="canvas" width="800" height="600" style="position: relative;top:-600; z-index: 0"></canvas>
+  <body onload='draw();'>
+    <div style='position: relative;top:0; width:800px; height: 600px; z-index: -1; background-color: darkgrey'>
+      <canvas id='canvas' width='800' height='600' style='position: relative;top:-600; z-index: 0'></canvas>
     </div>
     
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+    <ul id='messages'></ul>
+    <form action=''>
+      <input id='m' autocomplete='off' /><button>Send</button>
     </form>
   </body>
 </html>

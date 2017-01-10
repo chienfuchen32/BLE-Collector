@@ -11,7 +11,7 @@ var userModel = mongoose.model('user', mongoose.Schema({
     photo_path: String,
     ble_devices: [String],
     create_datetime: Date,//ref http://stackoverflow.com/questions/11973304/mongodb-mongoose-querying-at-a-specific-date
-    update_datetime: Date,//db.getCollection('users').find({update_datetime: { $gt: ISODate("2016-01-08") }})
+    update_datetime: Date,//db.getCollection('users').find({update_datetime: { $gt: ISODate('2016-01-08') }})
     // last_login_ip: String,
 },{ versionKey: false }));
 module.exports = userModel;

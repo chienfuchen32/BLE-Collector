@@ -1,16 +1,19 @@
 var mongoose = require('mongoose');
-var areaModel = mongoose.model('ble_station', mongoose.Schema({
-    addr_type: String, 
+var stationschema = mongoose.Schema({
+    s_bd_addr: String , 
+    tx_power: String, //or Number
+    rssi: String,  //or Number
+    datetime: Date
+}, { _id: false, versionKey: false});
+var bleModel = mongoose.model('ble_station', mongoose.Schema({
     bd_addr: String, 
+    addr_type: String, 
     type: String, 
     company: String, 
     name: String, 
-    tx_power: Number, 
-    rssi: Number, 
-    datetime: Date, 
-    rssi_0: Number, 
+    ble_stations:[stationschema],
+    rssi_0: String,  //or Number
+    main_s_bd_addr: String, 
     u_id: [String], 
 },{ versionKey: false }));
-module.exports = areaModel;
-
-//define ble objec { addr_type: "", bd_addr: "", name: "", type: "", company: "", tx_power: "", rssi: "",  datetime: "", rssi_0m}
+module.exports = bleModel;

@@ -1,15 +1,29 @@
 var validator = require('validator');
-//response -> status would be "OK" or "NG"
+//response -> status would be 'OK' or 'NG'
 var globals = require('../globals/globals.js');
-exports.info_collector = function(req, res) {//handle ble info staion sniffed then update globals/globals.bles
+function datetime_check(str_date1,str_date2){
+  var date1 = new Date(str_date1);
+  var date2 = new Date(str_date2);
+  var timeDiff = Math.abs(date2.getTime() - date1.getTime());
+  var diffMinutes = Math.ceil(timeDiff / (1000 * 3600 * 24 * 60));
+  return(diffMinutes);
+}
+function compare_rssi(a, b){
+  if (a.rssi < b.rssi)
+    return -1;
+  if (a.rssi > b.rssi)
+    return 1;
+  return 0;
+  //http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+}
+exports.handle_peripheral = function(req, res) {//handle ble info staion sniffed then update globals/globals.bles
   //****please lock globals.bles_native https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
   try{
-    var response = { status: "OK", message: "" };
+    var response = { status: 'OK', message: '' };
     var IsWellFormat = true;
     //get http parameter to update ble
     let ble_list = req.body.ble_list;
     //****try make ble.exe send rssi int16 message
-    //****delete globals.bles_native where (globals.bles_native.bles[i].datetime).substract(Date.now()) > 1 minute
     for(let i  = 0; i < ble_list.length; i++){
       let Is_ble_Existed = false;
       let s_bd_addr = req.body.s_bd_addr;
@@ -24,8 +38,8 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed th
         datetime: ble_list[i].datetime,
       }
       for(let j = 0; j < globals.bles_native.length; j++){
-        if(globals.bles_native[j].s_bd_addr == ble_list[i].s_bd_addr){
-          for(let k = 0; k < global.bles_native[j].bles.length; k++){
+        if(globals.bles_native[j].s_bd_addr == s_bd_addr){
+          for(let k = 0; k < globals.bles_native[j].bles.length; k++){
             if(globals.bles_native[j].bles[k].bd_addr == ble_list[i].bd_addr){
               globals.bles_native[j].bles[k].tx_power = ble_list[i].tx_power;
               globals.bles_native[j].bles[k].rssi = ble_list[i].rssi;
@@ -37,60 +51,107 @@ exports.info_collector = function(req, res) {//handle ble info staion sniffed th
       }
       if(!Is_ble_Existed){
         let Is_ble_station_Existed = false;
-        for(let j = 0; j < globals.bles.length; j++){
+        for(let j = 0; j < globals.bles_native.length; j++){
           if(globals.bles_native[j].s_bd_addr == s_bd_addr){
             globals.bles_native[j].bles[globals.bles_native[j].bles.length] = ble;
             Is_ble_station_Existed = true;
           }
         }
         if(!Is_ble_station_Existed){
-          globals.bles_native[j].bles[globals.bles[j].length] = {
+          globals.bles_native[globals.bles_native.length] = {
             s_bd_addr: s_bd_addr,
             bles: [ ble ]
           }
         }
       }
     }
-    //****please lock globals.bles
-    //make globals.bles = {bd_addr:"", addr_type:"", ... ble_stations:[{s_bd_addr:"", rssi: rssi, datetime: ""}]}
-    console.log(globals.bles)
+    // console.log(globals.bles_native)
+    //****please lock globals.bles 
+    for(let j = 0; j < globals.bles_native.length; j++){
+      for(let k = 0; k < globals.bles_native[j].bles.length; k++){
+        let Is_ble_Existed = false;
+        let ble = {
+          bd_addr: '', 
+        }
+        for(let h = 0; h < globals.bles.length; h++){
+          if(globals.bles[h].bd_addr == globals.bles_native[j].bles[k].bd_addr){
+            let Is_ble_station_Existed = false;
+            for(let i = 0; i < globals.bles[h].ble_stations.length; i++){
+              if(globals.bles[h].ble_stations[i].s_bd_addr == globals.bles_native[j].s_bd_addr){
+                globals.bles[h].ble_stations[i].rssi = globals.bles_native[j].bles[k].rssi;
+                globals.bles[h].ble_stations[i].datetime = globals.bles_native[j].bles[k].datetime;
+                Is_ble_station_Existed = true;
+              }
+            }
+            if(!Is_ble_station_Existed){
+              globals.bles[h].ble_stations = [{
+                s_bd_addr: globals.bles_native[j].s_bd_addr,
+                rssi: globals.bles_native[j].bles[k].rssi,
+                datetime: globals.bles_native[j].bles[k].datetime
+              }];
+            }
+            Is_ble_Existed = true;
+          }
+        }
+        if(!Is_ble_Existed){
+          globals.bles[globals.bles.length]={
+            addr_type: globals.bles_native[j].bles[k].addr_type,
+            bd_addr: globals.bles_native[j].bles[k].bd_addr,
+            type: globals.bles_native[j].bles[k].type,
+            company: globals.bles_native[j].bles[k].company,
+            name: globals.bles_native[j].bles[k].name,
+            ble_stations : [{
+              s_bd_addr: globals.bles_native[j].s_bd_addr,
+              tx_power: globals.bles_native[j].bles[k].tx_power,
+              rssi: globals.bles_native[j].bles[k].rssi,
+              datetime: globals.bles_native[j].bles[k].datetime
+            }]
+          }
+        }
+      }
+    }
+    //****delete globals.bles_native where (globals.bles_native.bles[i].datetime).substract(Date.now()) > 1 minute
+    for(let i = 0; i < globals.bles_native.length; i++){
+      globals.bles_native[i].bles.sort(compare_rssi);
+    }
+    console.log(globals.bles.length);
     res.json(response);
   }
   catch(err){
-
+    console.err('info_collector err: ' + err);
   }}
 //ble station
 exports.findStation = function(req, res){
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
-  var ble_stationModel = require("../model/ble_stations.js");
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var ble_stationModel = require('../model/ble_stations.js');
   ble_stationModel.find({}, function (err, ble_stations) {
     if (err){
-      response = { status : "NG", message : err };
+      response = { status : 'NG', message : err };
     }
     response.message = ble_stations;
     res.json(response);
   })}
 exports.addStation = function(req, res) {
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   const name = req.body.name;
   const x = req.body.x;
   const y = req.body.y;
   try{
-    if((typeof x != "undefined") && (!validator.isInt(x))){
-      throw "x format wrong";
+    if((typeof x != 'undefined') && (!validator.isInt(x))){
+      throw 'x format wrong';
     }
-    if((typeof y != "undefined") && (!validator.isInt(y))){
-      throw "y format wrong";
+    if((typeof y != 'undefined') && (!validator.isInt(y))){
+      throw 'y format wrong';
     }
   }
   catch(err){
     IsWellFormat = false;
-    response = { status : "NG", message : err.message };
+    response = { status : 'NG', message : err.message };
   }
   if(IsWellFormat) {
-    var ble_stationModel = require("../model/ble_stations.js");
+    var ble_stationModel = require('../model/ble_stations.js');
     // check if bd_addr existed
     var Is_bd_addr_Existed = false;
     var query = ble_stationModel.findOne({ bd_addr: bd_addr });
@@ -100,7 +161,7 @@ exports.addStation = function(req, res) {
       if(ble_station != null)
         Is_bd_addr_Existed = true;
       if(Is_bd_addr_Existed){
-        response = { status : "NG", message : "bd_addr is already existed" };
+        response = { status : 'NG', message : 'bd_addr is already existed' };
         res.json(response);
       }
       else{
@@ -113,7 +174,7 @@ exports.addStation = function(req, res) {
         });
         ble_station.save(function(err){
           if(err){
-            response = { status : "NG", message : err };
+            response = { status : 'NG', message : err };
           }
           res.json(response);
         });
@@ -124,26 +185,26 @@ exports.addStation = function(req, res) {
       res.json(response);
   }}
 exports.editStation = function(req, res) {
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   const name = req.body.name;
   const x = req.body.x;
   const y = req.body.y;
   try{
-    if((typeof x != "undefined") && (!validator.isInt(x))){
-      throw "x format wrong";
+    if((typeof x != 'undefined') && (!validator.isInt(x))){
+      throw 'x format wrong';
     }
-    if((typeof y != "undefined") && (!validator.isInt(y))){
-      throw "y format wrong";
+    if((typeof y != 'undefined') && (!validator.isInt(y))){
+      throw 'y format wrong';
     }
   }
   catch(err){
     IsWellFormat = false;
-    response = { status : "NG", message : err.message };
+    response = { status : 'NG', message : err.message };
   }
   if(IsWellFormat) {
-    var ble_stationModel = require("../model/ble_stations.js");
+    var ble_stationModel = require('../model/ble_stations.js');
     // check if bd_addr existed
     var Is_bd_addr_Existed = false;
     var query = ble_stationModel.findOne({ bd_addr: bd_addr });
@@ -153,7 +214,7 @@ exports.editStation = function(req, res) {
       if(ble_station != null)
         Is_bd_addr_Existed = true;
       if(!Is_bd_addr_Existed){
-        response = { status : "NG", message : "bd_addr is not existed" };
+        response = { status : 'NG', message : 'bd_addr is not existed' };
         res.json(response);
       }
       else{
@@ -162,7 +223,7 @@ exports.editStation = function(req, res) {
           { $set: { name: name, x: x, y: y }},
           function(err){
             if(err){
-              response = { status : "NG", message : err };
+              response = { status : 'NG', message : err };
             }
             res.json(response);
           });
@@ -173,21 +234,21 @@ exports.editStation = function(req, res) {
       res.json(response);
   }}
 exports.delStation = function(req, res) {
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   try{
   }
   catch(err){
     IsWellFormat = false;
-    response = { status : "NG", message : err.message };
+    response = { status : 'NG', message : err.message };
   }
   if(IsWellFormat) {
-    var ble_stationModel = require("../model/ble_stations.js");
+    var ble_stationModel = require('../model/ble_stations.js');
     ble_stationModel.remove({ bd_addr: bd_addr },
     function(err){
       if(err){
-        response = { status : "NG", message : err };
+        response = { status : 'NG', message : err };
       }
       res.json(response);
     });
@@ -197,7 +258,7 @@ exports.delStation = function(req, res) {
   }}
 //users
 exports.addUser = function(req, res){
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
   var IsWellFormat = true;
   const name = req.body.name;
   const gender = req.body.gender;
@@ -211,31 +272,31 @@ exports.addUser = function(req, res){
   const ble_devices = req.body.ble_devices;
   try{
     const pass_regex = /^[a-zA-Z0-9]+$/;
-    if(((typeof id != "undefined") && (!pass_regex.test(id))) || (id == "")){
-      throw "id format wrong";
+    if(((typeof id != 'undefined') && (!pass_regex.test(id))) || (id == '')){
+      throw 'id format wrong';
     }
-    if(((typeof password != "undefined") && (!pass_regex.test(password))) || (password == "")){
-      throw "password format wrong";
+    if(((typeof password != 'undefined') && (!pass_regex.test(password))) || (password == '')){
+      throw 'password format wrong';
     }
-    if((typeof gender != "undefined") && ((!validator.isInt(gender)) || ((gender != 0) && (gender != 1) && (gender != 2) && (gender != 9)))){
-      throw "gender format wrong";
+    if((typeof gender != 'undefined') && ((!validator.isInt(gender)) || ((gender != 0) && (gender != 1) && (gender != 2) && (gender != 9)))){
+      throw 'gender format wrong';
     }
-    if((typeof email != "undefined") && (!validator.isEmail(email))){
-      throw "email format wrong";
+    if((typeof email != 'undefined') && (!validator.isEmail(email))){
+      throw 'email format wrong';
     }
-    if((typeof country_code != "undefined") && (!validator.isInt(country_code))){
-      throw "country code format wrong";
+    if((typeof country_code != 'undefined') && (!validator.isInt(country_code))){
+      throw 'country code format wrong';
     }
-    if((typeof number != "undefined") && (!validator.isInt(number))){
-      throw "number format wrong";
+    if((typeof number != 'undefined') && (!validator.isInt(number))){
+      throw 'number format wrong';
     }
   }
   catch(err){
     IsWellFormat = false;
-    response = { status : "NG", message : err.message };
+    response = { status : 'NG', message : err.message };
   }
   if(IsWellFormat) {
-    var usermodel = require("../model/user.js");
+    var usermodel = require('../model/user.js');
     // check if id existed 
     var IsIdExisted = false;
     var query = usermodel.findOne({ id: id });
@@ -245,7 +306,7 @@ exports.addUser = function(req, res){
       if(user != null)
         IsIdExisted = true;
       if(IsIdExisted){
-        response = { status : "NG", message : "id is already existed" };//人工unique key
+        response = { status : 'NG', message : 'id is already existed' };//人工unique key
         res.json(response);
       }
       else{
@@ -263,7 +324,7 @@ exports.addUser = function(req, res){
         });
         user.save(function(err){
           if(err){
-            response = { status : "NG", message : err };
+            response = { status : 'NG', message : err };
           }
           res.json(response);
         });
@@ -274,7 +335,7 @@ exports.addUser = function(req, res){
       res.json(response);
   }}
 exports.editUser = function(req, res) {
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
   var IsWellFormat = true;
   const name = req.body.name;
   const gender = req.body.gender;
@@ -288,31 +349,31 @@ exports.editUser = function(req, res) {
   const ble_devices = req.body.ble_devices;
   try{
     const pass_regex = /^[a-zA-Z0-9]+$/;
-    if(((typeof id != "undefined") && (!pass_regex.test(id))) || (id == "")){
-      throw "id format wrong";
+    if(((typeof id != 'undefined') && (!pass_regex.test(id))) || (id == '')){
+      throw 'id format wrong';
     }
-    if(((typeof password != "undefined") && (!pass_regex.test(password))) || (password == "")){
-      throw "password format wrong";
+    if(((typeof password != 'undefined') && (!pass_regex.test(password))) || (password == '')){
+      throw 'password format wrong';
     }
-    if((typeof gender != "undefined") && ((!validator.isInt(gender)) || ((gender != 0) && (gender != 1) && (gender != 2) && (gender != 9)))){
-      throw "gender format wrong";
+    if((typeof gender != 'undefined') && ((!validator.isInt(gender)) || ((gender != 0) && (gender != 1) && (gender != 2) && (gender != 9)))){
+      throw 'gender format wrong';
     }
-    if((typeof email != "undefined") && (!validator.isEmail(email))){
-      throw "email format wrong";
+    if((typeof email != 'undefined') && (!validator.isEmail(email))){
+      throw 'email format wrong';
     }
-    if((typeof country_code != "undefined") && (!validator.isInt(country_code))){
-      throw "country code format wrong";
+    if((typeof country_code != 'undefined') && (!validator.isInt(country_code))){
+      throw 'country code format wrong';
     }
-    if((typeof number != "undefined") && (!validator.isInt(number))){
-      throw "number format wrong";
+    if((typeof number != 'undefined') && (!validator.isInt(number))){
+      throw 'number format wrong';
     }
   }
   catch(err){
     IsWellFormat = false;
-    response = { status : "NG", message : err.message };
+    response = { status : 'NG', message : err.message };
   }
   if(IsWellFormat) {
-    var userModel = require("../model/user.js");
+    var userModel = require('../model/user.js');
     // check if bd_addr existed
     var Is_id_Existed = false;
     var query = userModel.findOne({ id : id });
@@ -322,7 +383,7 @@ exports.editUser = function(req, res) {
       if(user != null)
         Is_id_Existed = true;
       if(!Is_id_Existed){
-        response = { status : "NG", message : "id is not existed" };
+        response = { status : 'NG', message : 'id is not existed' };
         res.json(response);
       }
       else{
@@ -340,7 +401,7 @@ exports.editUser = function(req, res) {
           }},
           function(err){
             if(err){
-              response = { status : "NG", message : err };
+              response = { status : 'NG', message : err };
             }
             res.json(response);
           });
@@ -351,25 +412,25 @@ exports.editUser = function(req, res) {
       res.json(response);
   }}
 exports.delUser = function(req, res) {
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
   var IsWellFormat = true;
   const id = req.body.id;
   try{
     const pass_regex = /^[a-zA-Z0-9]+$/;
-    if(((typeof id != "undefined") && (!pass_regex.test(id))) || (id == "")){
-      throw "id format wrong";
+    if(((typeof id != 'undefined') && (!pass_regex.test(id))) || (id == '')){
+      throw 'id format wrong';
     }
   }
   catch(err){
     IsWellFormat = false;
-    response = { status : "NG", message : err.message };
+    response = { status : 'NG', message : err.message };
   }
   if(IsWellFormat) {
-    var userModel = require("../model/user.js");
+    var userModel = require('../model/user.js');
     userModel.remove({ id: id },
     function(err){
       if(err){
-        response = { status : "NG", message : err };
+        response = { status : 'NG', message : err };
       }
       res.json(response);
     });
@@ -379,33 +440,33 @@ exports.delUser = function(req, res) {
   }}
 //areas
 exports.editArea = function(req, res){
-  var response = { status: "OK", message: "" };//if proccess status would be "OK" or "NG"
+  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
   var IsWellFormat = true;
   const width = req.body.width;
   const height = req.body.height;
   const meters_unit = req.body.meters_unit;
   try{
-    if((typeof x != "undefined") && (!validator.isInt(width))){
-      throw "width format wrong";
+    if((typeof x != 'undefined') && (!validator.isInt(width))){
+      throw 'width format wrong';
     }
-    if((typeof y != "undefined") && (!validator.isInt(height))){
-      throw "height format wrong";
+    if((typeof y != 'undefined') && (!validator.isInt(height))){
+      throw 'height format wrong';
     }
-    if((typeof y != "undefined") && (!validator.isInt(meters_unit))){
-      throw "meters_unit format wrong";
+    if((typeof y != 'undefined') && (!validator.isInt(meters_unit))){
+      throw 'meters_unit format wrong';
     }
   }
   catch(err){
     IsWellFormat = false;
-    response = { status : "NG", message : err.message };
+    response = { status : 'NG', message : err.message };
   }
   if(IsWellFormat) {
-    var areaModel = require("../model/areas.js");
+    var areaModel = require('../model/areas.js');
     // check if bd_addr existed
     var Is_bd_addr_Existed = false;
     mongoose.connection.db.dropCollection('areas', function(err, result) {//http://stackoverflow.com/questions/11453617/mongoose-js-remove-collection-or-db
       if(err){
-        response = { status : "NG", message : err };
+        response = { status : 'NG', message : err };
         res.json(response);
       }
       else{
@@ -417,7 +478,7 @@ exports.editArea = function(req, res){
         });
         area.save(function(err){
           if(err){
-            response = { status : "NG", message : err };
+            response = { status : 'NG', message : err };
           }
           res.json(response);
         });

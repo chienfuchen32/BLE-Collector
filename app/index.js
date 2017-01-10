@@ -8,7 +8,8 @@ var router_ble_staion = require('../routers/ble_station.js');
 var router_area = require('../routers/area.js');
 var router_user = require('../routers/user.js');
 var Core = require('../app/core.js');
-var hardcore = new Core();
+var hardcore = new Core(2,2);
+var globals = require('../globals/globals.js');
 var config_mongodb = require('../configs/mongodb.js');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;//https://github.com/Automattic/mongoose/issues/4291
@@ -18,7 +19,7 @@ db.on('error', console.error.bind(console, 'connection error:'));//因為遇到h
 db.on('open', function() {
   // console.log('connected');
   hardcore.bleStationsUpdate();
-  // var estimateLocationInterval = setInterval( core.estimateLocation, 10000);//local variable or global?
+  hardcore.estimateStart();
 });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,8 +30,8 @@ app.disable('x-powered-by');
 
 //allow CORS? --> security of socket io can use things like this https://auth0.com/blog/auth-with-socket-io/
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 });
 
@@ -78,18 +79,20 @@ app.use(function(err, req, res, next) {
   });
 });
 
+let test = setInterval(function(){
+  io.emit('ble_locator', globals.locations_bles);
+  io.emit('ble_devices', globals.bles_native);
+}, 5000);
 // socket io
 io.on('connection', function(socket){
   console.log('a user connected');
-  socket.broadcast.emit('hi');
-  socket.on('chat message', function(msg){
-    // console.log('message: ' + msg);
-    io.emit('chat message', msg);
-    io.emit('chat message', { for: 'everyone' });
-    let test = setInterval(function(){
-      io.emit('chat message', 'yo');
-    }, 3000);
-  });
+  // socket.broadcast.emit('hi');
+  // socket.on('chat message', function(msg){
+  //   // console.log('message: ' + msg);
+  //   // io.emit('chat message', msg);
+  //   // io.emit('chat message', { for: 'everyone' });
+  // });
+
   socket.on('disconnect', function(){
     // console.log('user disconnected');
   });
