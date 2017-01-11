@@ -3,10 +3,11 @@ var app = require('express')();
 var bodyParser = require('body-parser');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var router_ble = require('../routers/ble.js');
 var router_ble_staion = require('../routers/ble_station.js');
 var router_area = require('../routers/area.js');
-var router_user = require('../routers/user.js');
+var router_ble_watch_list = require('../routers/ble_watch_list.js');
+var router_ble = require('../routers/ble.js');
+// var router_user = require('../routers/user.js');
 var Core = require('../app/core.js');
 var hardcore = new Core(2,2);
 var globals = require('../globals/globals.js');
@@ -46,10 +47,11 @@ app.get('/', function(req, res){
 app.get('/station', function(req, res){
   res.sendFile(__dirname + '/station.html');
 });
-app.use('/ble', router_ble);
 app.use('/station', router_ble_staion);
 app.use('/area', router_area);
-app.use('/user', router_user);
+app.use('/ble_watch_list', router_ble_watch_list);
+app.use('/ble', router_ble);
+// app.use('/user', router_user);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -84,8 +86,11 @@ let test = setInterval(function(){
   io.emit('ble_devices', globals.bles_native);
 }, 5000);
 // socket io
+let number_sockt_client = 0;
 io.on('connection', function(socket){
-  console.log('a user connected');
+  //console.log('a user connected');
+  number_sockt_client++;
+  console.log('web client number: ' + number_sockt_client);
   // socket.broadcast.emit('hi');
   // socket.on('chat message', function(msg){
   //   // console.log('message: ' + msg);
@@ -95,6 +100,8 @@ io.on('connection', function(socket){
 
   socket.on('disconnect', function(){
     // console.log('user disconnected');
+    number_sockt_client--;
+    console.log('web client number: ' + number_sockt_client);
   });
 });
 

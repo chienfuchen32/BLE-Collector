@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+/*var mongoose = require('mongoose');
 var stationschema = mongoose.Schema({
     s_bd_addr: String , 
     tx_power: String, //or Number
@@ -16,4 +16,4 @@ var bleModel = mongoose.model('ble_station', mongoose.Schema({
     main_s_bd_addr: String, 
     u_id: [String], 
 },{ versionKey: false }));
-module.exports = bleModel;
+module.exports = bleModel;*/

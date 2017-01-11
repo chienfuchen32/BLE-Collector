@@ -6,16 +6,14 @@ function datetime_check(str_date1,str_date2){
   var date2 = new Date(str_date2);
   var timeDiff = Math.abs(date2.getTime() - date1.getTime());
   var diffMinutes = Math.ceil(timeDiff / (1000 * 3600 * 24 * 60));
-  return(diffMinutes);
-}
+  return(diffMinutes);}
 function compare_rssi(a, b){
+  //http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
   if (a.rssi < b.rssi)
     return -1;
   if (a.rssi > b.rssi)
     return 1;
-  return 0;
-  //http://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-}
+  return 0;}
 exports.handle_peripheral = function(req, res) {//handle ble info staion sniffed then update globals/globals.bles
   //****please lock globals.bles_native https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
   try{
@@ -71,7 +69,7 @@ exports.handle_peripheral = function(req, res) {//handle ble info staion sniffed
       for(let k = 0; k < globals.bles_native[j].bles.length; k++){
         let Is_ble_Existed = false;
         let ble = {
-          bd_addr: '', 
+          bd_addr: ''
         }
         for(let h = 0; h < globals.bles.length; h++){
           if(globals.bles[h].bd_addr == globals.bles_native[j].bles[k].bd_addr){
@@ -114,7 +112,7 @@ exports.handle_peripheral = function(req, res) {//handle ble info staion sniffed
     for(let i = 0; i < globals.bles_native.length; i++){
       globals.bles_native[i].bles.sort(compare_rssi);
     }
-    console.log(globals.bles.length);
+    console.log('ble device number: ' + globals.bles.length);
     res.json(response);
   }
   catch(err){
@@ -122,17 +120,25 @@ exports.handle_peripheral = function(req, res) {//handle ble info staion sniffed
   }}
 //ble station
 exports.findStation = function(req, res){
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
+  try{
   var ble_stationModel = require('../model/ble_stations.js');
   ble_stationModel.find({}, function (err, ble_stations) {
     if (err){
       response = { status : 'NG', message : err };
     }
-    response.message = ble_stations;
+    else{
+      response.message = ble_stations;
+    }
     res.json(response);
-  })}
+  })
+  }
+  catch(err){
+    response = { status : 'NG', message : err };
+    res.json(response);
+  }}
 exports.addStation = function(req, res) {
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   const name = req.body.name;
@@ -185,7 +191,7 @@ exports.addStation = function(req, res) {
       res.json(response);
   }}
 exports.editStation = function(req, res) {
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   const name = req.body.name;
@@ -234,7 +240,7 @@ exports.editStation = function(req, res) {
       res.json(response);
   }}
 exports.delStation = function(req, res) {
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
   var IsWellFormat = true;
   const bd_addr = req.body.bd_addr;
   try{
@@ -256,9 +262,9 @@ exports.delStation = function(req, res) {
   else {
       res.json(response);
   }}
-//users
+/*//users
 exports.addUser = function(req, res){
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
   var IsWellFormat = true;
   const name = req.body.name;
   const gender = req.body.gender;
@@ -335,7 +341,7 @@ exports.addUser = function(req, res){
       res.json(response);
   }}
 exports.editUser = function(req, res) {
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
   var IsWellFormat = true;
   const name = req.body.name;
   const gender = req.body.gender;
@@ -412,7 +418,7 @@ exports.editUser = function(req, res) {
       res.json(response);
   }}
 exports.delUser = function(req, res) {
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
   var IsWellFormat = true;
   const id = req.body.id;
   try{
@@ -438,9 +444,10 @@ exports.delUser = function(req, res) {
   else {
       res.json(response);
   }}
+*/
 //areas
 exports.editArea = function(req, res){
-  var response = { status: 'OK', message: '' };//if proccess status would be 'OK' or 'NG'
+  var response = { status: 'OK', message: '' };
   var IsWellFormat = true;
   const width = req.body.width;
   const height = req.body.height;
@@ -485,6 +492,82 @@ exports.editArea = function(req, res){
       }
       
     });
+  }
+  else {
+      res.json(response);
+  }}
+//ble_watch_list
+exports.findBleWatchList = function(req, res){
+  var response = { status: 'OK', message: '' };
+  try{
+    var ble_watch_listModel = require('../model/ble_watch_list.js');
+    ble_watch_listModel.find({}, function (err, ble_watch_lists) {
+      if (err){
+        response = { status : 'NG', message : err };
+      }
+      else{
+        response.message = ble_watch_lists;
+      }
+      res.json(response);
+    })
+  }
+  catch(err){
+    response = { status : 'NG', message : err };
+    res.json(response);
+  }}
+exports.updateBleWatchList = function(req, res) {
+  var response = { status: 'OK', message: '' };
+  var IsWellFormat = true;
+  const bd_addr = req.body.bd_addr;
+  const addr_type = req.body.addr_type;
+  const type = req.body.type;
+  const company = req.body.company;
+  const name = req.body.name;
+  const user_name = req.body.user_name;
+  if(IsWellFormat) {
+    var ble_watch_listModel = require('../model/ble_watch_list.js');
+    if(user_name == ''){//delete     
+      ble_watch_listModel.remove({ bd_addr: bd_addr },
+      function(err){
+        if(err){
+          response = { status : 'NG', message : err };
+        }
+        res.json(response);
+      });
+    }
+    else{//save or update
+      // check if bd_addr existed
+      var Is_bd_addr_Existed = false;
+      var query = ble_watch_listModel.findOne({ bd_addr: bd_addr });
+      query.select('name');
+      query.exec(function (err, ble_watch_list) {
+        if (err) return handleError(err);
+        if(ble_watch_list != null)
+          Is_bd_addr_Existed = true;
+        if(Is_bd_addr_Existed){
+          ble_watch_listModel.update(
+            { bd_addr: bd_addr}, 
+            { $set: { addr_type: addr_type, type: type, company: company, name: name, user_name: user_name}},
+            function(err){
+              if(err){
+                response = { status : 'NG', message : err };
+              }
+              res.json(response);
+            });
+        }
+        else{//insert data to mongodb
+          var ble_watch_list = new ble_watch_listModel(
+            { bd_addr: bd_addr, addr_type: addr_type, type: type, company: company, name: name, user_name: user_name}
+            );
+          ble_watch_list.save(function(err){
+            if(err){
+              response = { status : 'NG', message : err };
+            }
+            res.json(response);
+          });
+        }
+      })
+    }
   }
   else {
       res.json(response);

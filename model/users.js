@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+/*var mongoose = require('mongoose');
 var phoneschema = mongoose.Schema(
     { phone_type: String , country_code: String, number: Number }, { _id: false, versionKey: false});
 var userModel = mongoose.model('user', mongoose.Schema({
@@ -14,4 +14,4 @@ var userModel = mongoose.model('user', mongoose.Schema({
     update_datetime: Date,//db.getCollection('users').find({update_datetime: { $gt: ISODate('2016-01-08') }})
     // last_login_ip: String,
 },{ versionKey: false }));
-module.exports = userModel;
+module.exports = userModel;*/
