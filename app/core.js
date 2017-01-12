@@ -10,7 +10,7 @@ class Core {
     // this.n_environment = '';
     // this.meters_error_tolerance_estimate = '';
     constructor() {
-        this.n_environment = 2; //signal propagation constant
+        this.n_environment = 2;//signal propagation constant
         this.meters_error_tolerance_estimate = 2;//in meters
         this.estimateInterval = 5000;
         // Core.rssi02distance('','','');

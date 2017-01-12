@@ -81,10 +81,6 @@ app.use(function(err, req, res, next) {
   });
 });
 
-let test = setInterval(function(){
-  io.emit('ble_locator', globals.locations_bles);
-  io.emit('ble_devices', globals.bles_native);
-}, 5000);
 // socket io
 let number_sockt_client = 0;
 io.on('connection', function(socket){
@@ -104,6 +100,10 @@ io.on('connection', function(socket){
     console.log('web client number: ' + number_sockt_client);
   });
 });
+let test = setInterval(function(){
+  io.emit('ble_locator', globals.locations_bles);
+  io.emit('ble_devices', globals.bles_native);
+}, 5000);
 
 http.listen(3000, function(){
   console.log('listening on *:3000');

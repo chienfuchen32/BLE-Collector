@@ -112,6 +112,7 @@ exports.handle_peripheral = function(req, res) {//handle ble info staion sniffed
     for(let i = 0; i < globals.bles_native.length; i++){
       globals.bles_native[i].bles.sort(compare_rssi);
     }
+    // console.log(JSON.stringify(globals.bles_native))
     console.log('ble device number: ' + globals.bles.length);
     res.json(response);
   }
