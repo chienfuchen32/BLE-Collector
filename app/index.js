@@ -14,7 +14,7 @@ var globals = require('../globals/globals.js');
 var config_mongodb = require('../configs/mongodb.js');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;//https://github.com/Automattic/mongoose/issues/4291
-mongoose.connect(config_mongodb.mongodb.database);
+mongoose.connect(config_mongodb.mongodb.config);
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));//因為遇到http://stackoverflow.com/questions/9768444/possible-eventemitter-memory-leak-detected 所以把這個關閉
 db.on('open', function() {

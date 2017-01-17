@@ -1,3 +1,3 @@
 exports.mongodb = {
-  database: 'mongodb://localhost/bledb'
+  config: 'mongodb://ble:ble@localhost/bledb'
 };
