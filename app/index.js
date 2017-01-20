@@ -12,6 +12,8 @@ var Core = require('../app/core.js');
 var hardcore = new Core(2,2);
 var globals = require('../globals/globals.js');
 var config_mongodb = require('../configs/mongodb.js');
+// var test0 = require('../configs/test.js');
+// test0.test();
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;//https://github.com/Automattic/mongoose/issues/4291
 mongoose.connect(config_mongodb.mongodb.config);
